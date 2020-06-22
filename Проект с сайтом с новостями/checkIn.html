@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/uikit.min.css"/>
+</head>
+<body>
+<!-- Хедер начало -->
+<nav class="uk-navbar-container" uk-navbar>
+    <div class="uk-navbar-left">
+        <a class="uk-navbar-item uk-logo" href="index.html">Article</a>
+    </div>
+    <div id="profileContainer" class="uk-navbar-right">
+        <!-- <div class = "img_avatar uk-margin-medium-right" alt="Avatar"></div>
+        <p class = "uk-text-meta uk-margin-right">Имя</p>
+        <p class = "uk-text-meta uk-margin-medium-right">Фамилия</p> -->
+        <a href="Authorization.html" class="uk-button uk-button-default uk-margin-right">Авторизоваться</a>
+        <a href="checkin.html" class="uk-button uk-button-default uk-margin-right uk-button-danger">Зарегестрироваться</a>
+    </div>
+</nav>
+<!-- Хедер конец -->
+
+    <div class="uk-container uk-container-small uk-flex uk-flex-center uk-flex-middle"
+    uk-height-viewport="offset-top: true">
+        <div class="uk-card uk-card-default uk-card-body uk-width-1-1">
+            <h1 class="uk-card-title">Регистрация</h1>
+            <input id="log" type="text" class="uk-input uk-margin-bottom"
+                placeholder="Имя (логин)">
+            <input id="sur" type="text" class="uk-input uk-margin-bottom"
+                placeholder="Фамилия">
+            <input id="pass" type="password" class="uk-input uk-margin-bottom"
+                placeholder="Пароль">
+            <input id="img" type="text" class="uk-input uk-margin-bottom"
+                placeholder="Вставьте url картинки">
+            <button id="checkin" class="uk-margin-top uk-button uk-button-danger">Вход</button>
+        </div>
+    </div>
+
+<script src="js/uikit.min.js"></script>
+<script src="js/uikit-icons.min.js"></script>
+<script>
+    'use strict';
+    checkin.addEventListener("click", function(){
+        let xhrLoadUser = new XMLHttpRequest();
+        xhrLoadUser.open('GET', 'http://api.oneteacher.space/jsonstorage/f80e4d810bc6f0ddb75fec869e86bb38',true);
+        xhrLoadUser.send();
+        xhrLoadUser.addEventListener('readystatechange', function () {
+                if (xhrLoadUser.readyState == 4 && xhrLoadUser.status == 200) {
+                    let userArr = JSON.parse(xhrLoadUser.responseText);
+                    console.log(userArr);
+                    let user = {
+                        name: log.value,
+                        password: pass.value,
+                        img_url:img.value,
+                        surname:sur.value
+                    }
+                userArr.push(user);
+                let xhrCheckIn = new XMLHttpRequest();
+                xhrCheckIn.open('PUT', 'http://api.oneteacher.space/jsonstorage/f80e4d810bc6f0ddb75fec869e86bb38', true);
+                xhrCheckIn.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                xhrCheckIn.send(JSON.stringify(userArr));
+                xhrCheckIn.addEventListener('readystatechange', function () {
+                    if (xhrLoadUser.readyState == 4 && xhrLoadUser.status == 200) {
+                            window.location.replace("Authorization.html");
+                        } else {
+                            alert('Error');
+                        }
+                })
+            }
+            });
+    })
+        
+</script>
+</body>
+</html>

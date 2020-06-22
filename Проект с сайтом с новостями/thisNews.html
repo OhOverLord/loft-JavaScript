@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/uikit.min.css"/>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+<!-- Хедер начало -->
+<nav class="uk-navbar-container" uk-navbar>
+    <div class="uk-navbar-left">
+        <a class="uk-navbar-item uk-logo" href="index.html">Article</a>
+        <ul class="uk-navbar-nav">
+            <li>
+                <a href="#">Публикации</a>
+                <div class="uk-navbar-dropdown">
+                    <ul class="uk-nav uk-navbar-dropdown-nav">
+                        <li class="uk-active"><a href="AddNews.html">Предложить новость</a></li>
+                        <li><a href="myNews.html">Мои новости</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li><a class="feedback" href="#modal" uk-toggle>Обратная связь</a></li>
+        </ul>
+    </div>
+    <div id="profileContainer" class="uk-navbar-right">
+        <!-- <div class = "img_avatar uk-margin-medium-right" alt="Avatar"></div>
+        <p class = "uk-text-meta uk-margin-right">Имя</p>
+        <p class = "uk-text-meta uk-margin-medium-right">Фамилия</p> -->
+        <a href="Authorization.html" class="uk-button uk-button-default uk-margin-right">Авторизоваться</a>
+        <a href="checkin.html" class="uk-button uk-button-default uk-margin-right uk-button-danger">Зарегестрироваться</a>
+    </div>
+</nav>
+<!-- Хедер конец -->
+
+<div class="uk-container uk-margin-top" id = "newsContainer">
+    
+</div>
+
+<div id="modal" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h2 class="uk-modal-title">Обратная связь</h2>
+        <p>Заголовок</p>
+        <input class = "feedbackTitle uk-input" type="text">
+        <p>Описание</p>
+        <textarea class = "feedbackDescription uk-flex uk-textarea" cols="30" rows="10"></textarea>
+        <p class="uk-text-right">
+            <button class="uk-button uk-button-default uk-modal-close" type="button">Закрыть</button>
+            <button class="uk-button uk-button-danger sendFeedback" type="button">Отправить</button>
+        </p>
+        <a href="feedback.html">Посмотреть все мои жалобы</a>
+    </div>
+</div>
+
+<div class="uk-container uk-margin-large-top uk-margin-bottom">
+    <h2>Оставить комментарий</h2>
+    <div class = "uk-flex uk-margin-top">
+        <input type="text" class="uk-input commentDescription">
+        <a class="uk-button uk-button-danger sendComment uk-margin-bottom">Отправить</a>
+    </div>
+    <div class = "commentContainer">
+
+    </div>
+</div>
+
+
+<script src="js/uikit.min.js"></script>
+<script src="js/uikit-icons.min.js"></script>
+<script src="js/handlebars-v4.1.2.js"></script>
+<script>
+'use strict';
+    let user = JSON.parse(localStorage.getItem('user'))
+    let auth = JSON.parse(localStorage.getItem('auth'))
+    let authCode= `
+        <div class = "img_avatar uk-margin-medium-right" style="background-image: url({{img_url}});" alt="Avatar"></div>
+        <p class = "uk-text-meta uk-margin-right">{{name}}</p>
+        <p class = "uk-text-meta uk-margin-medium-right">{{surname}}</p>
+        <button id = "goOut" class="uk-button uk-button-danger uk-margin-right">Выйти</button>
+    `;
+    let notAuthCode = `
+        <button class="uk-button uk-button-default uk-margin-right">Авторизоваться</button>
+        <button class="uk-button uk-button-danger uk-margin-right">Зарегестрироваться</button>
+    `;
+
+    let templateAuth = Handlebars.compile(authCode);
+    let templateNotAuth = Handlebars.compile(notAuthCode);
+    let context = {img_url: user.img_url, name: user.name, surname: user.surname};
+    console.log(auth);
+    if(auth)
+    {
+        console.log(templateAuth(context));
+        profileContainer.innerHTML = templateAuth(context);
+
+        goOut.addEventListener("click", function(){
+            localStorage.setItem('auth', 'false');
+            location.reload(true)
+        })
+
+        let sendFeedback = document.querySelector('.sendFeedback');
+            sendFeedback.addEventListener("click", function(){
+            let xhrFeedback = new XMLHttpRequest();
+            xhrFeedback.open('GET', 'http://api.oneteacher.space/jsonstorage/6ee05c0350262da59d97f424dd7d476c',true);
+            xhrFeedback.send();
+            xhrFeedback.addEventListener('readystatechange', function () {
+                if(xhrFeedback.readyState == 4 && xhrFeedback.status == 200){
+                    let user = JSON.parse(localStorage.getItem('user'))
+                    let feedbackArr = JSON.parse(xhrFeedback.responseText);
+                    let feedbacTtite = document.querySelector('.feedbackTitle');
+                    let feedbackDescription = document.querySelector('.feedbackDescription');
+                    let newFeedback = {
+                        author: user.name,
+                        title: feedbacTtite.value,
+                        description: feedbackDescription.value
+                    }
+                    feedbackArr.push(newFeedback);
+                    console.log(feedbackArr);
+                    let xhrFeedbackSend = new XMLHttpRequest();
+                    xhrFeedbackSend.open('PUT', 'http://api.oneteacher.space/jsonstorage/6ee05c0350262da59d97f424dd7d476c', true);
+                    xhrFeedbackSend.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                    xhrFeedbackSend.send(JSON.stringify(feedbackArr));
+                    xhrFeedbackSend.addEventListener('readystatechange', function () {
+                        if (xhrFeedbackSend.readyState == 4 && xhrFeedbackSend.status == 200) {
+                                location.reload(true)
+                            }
+                    })
+                }
+            })
+        })
+
+        let commentContainer = document.querySelector('.commentContainer');
+        let sendComment = document.querySelector('.sendComment');
+        let commentDescription = document.querySelector('.commentDescription');
+        let commentsArr;
+        let user = JSON.parse(localStorage.getItem('user')) 
+            sendComment.addEventListener("click", function(){
+            let xhrComment = new XMLHttpRequest();
+            xhrComment.open('GET', 'http://api.oneteacher.space/jsonstorage/c53f70799e4536700620a95e27f90b9c',true);
+            xhrComment.send();;
+            xhrComment.addEventListener('readystatechange', function () {
+                if(xhrComment.readyState == 4 && xhrComment.status == 200){
+                    let id_news = JSON.parse(localStorage.getItem('id_news'))
+                    commentsArr = JSON.parse(xhrComment.responseText);
+                    let comment = {
+                        id: id_news,
+                        author: user.name,
+                        aithor_img: user.img_url,
+                        description: commentDescription.value
+                    }
+                    commentsArr.push(comment);
+                    console.log(commentsArr);
+                    let xhrCommentSend = new XMLHttpRequest();
+                    xhrCommentSend.open('PUT', 'http://api.oneteacher.space/jsonstorage/c53f70799e4536700620a95e27f90b9c', true);
+                    xhrCommentSend.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                    xhrCommentSend.send(JSON.stringify(commentsArr));
+                    xhrCommentSend.addEventListener('readystatechange', function () {
+                        if (xhrCommentSend.readyState == 4 && xhrCommentSend.status == 200) {
+                            location.reload(true)
+                        }
+                    })
+                }
+            })
+        })
+
+        let xhrCommentLoad = new XMLHttpRequest();
+        xhrCommentLoad.open('GET', 'http://api.oneteacher.space/jsonstorage/c53f70799e4536700620a95e27f90b9c',true);
+        xhrCommentLoad.send();
+        xhrCommentLoad.addEventListener('readystatechange', function () {
+                if(xhrCommentLoad.readyState == 4 && xhrCommentLoad.status == 200){
+                    commentsArr = JSON.parse(xhrCommentLoad.responseText);
+                    let id_news = JSON.parse(localStorage.getItem('id_news')) 
+                    for(let i = 0; i < commentsArr.length; i++){
+                        if(commentsArr[i].id == id_news){
+                            let templateCode= `
+                                <article class="uk-comment uk-comment-primary uk-margin-top">
+                                    <header class="uk-comment-header uk-grid-medium uk-flex-middle" uk-grid>
+                                        <div class="uk-width-auto">
+                                            <img class="uk-comment-avatar" src="{{aithor_img}}" width="80" height="80" alt="">
+                                        </div>
+                                        <div class="uk-width-expand">
+                                            <h4 class="uk-comment-title uk-margin-remove"><a class="uk-link-reset" href="#">{{author}}</a></h4>
+                                        </div>
+                                    </header>
+                                    <div class="uk-comment-body">
+                                        <p>{{description}}</p>
+                                    </div>
+                                </article>
+                            `;
+                            console.log(commentsArr[i].id)
+                            let template = Handlebars.compile(templateCode);
+                            commentContainer.innerHTML += template(commentsArr[i]);
+                        }
+                    } 
+                }
+            })
+            
+    }
+
+    let xhrLoadNews = new XMLHttpRequest();
+    let newsArr;
+            xhrLoadNews.open('GET', 'http://api.oneteacher.space/jsonstorage/78522b4fb159f60d22a83ffdade964f9',true);
+            xhrLoadNews.send();
+            xhrLoadNews.addEventListener('readystatechange', function () {
+                if(xhrLoadNews.readyState == 4 && xhrLoadNews.status == 200){
+                    let user = JSON.parse(localStorage.getItem('user'))
+                    newsArr = JSON.parse(xhrLoadNews.responseText);
+                    let id_news = JSON.parse(localStorage.getItem('id_news')) 
+                    for(let i = 0; i < newsArr.length; i++){
+                        if(newsArr[i].id == id_news){
+                            let templateNewsCode= `
+                                <article class="uk-article">
+                                <h1 class="uk-article-title">
+                                    {{title}}
+                                </h1>
+                                <p class="uk-article-meta">Written by {{author}}</p>
+                                <p>
+                                    <a href="layouts_post.html"><img src="{{img}}" width="400" height="400" alt=""></a>
+                                </p>
+                                <div id = "newsDescription"></div>
+                                <p>
+                                    <a class="uk-button uk-button-danger" href="index.html">Вернуться назад</a>
+                                </p>
+                                </article>
+                            `;
+                            let templateNews = Handlebars.compile(templateNewsCode);
+                            let newsContainer = document.querySelector('#newsContainer');
+                            newsContainer.innerHTML = '';
+                            newsContainer.innerHTML += templateNews(newsArr[i]);
+                            let newsDescription = document.querySelector('#newsDescription');
+                            newsDescription.innerHTML = '';
+                            newsDescription.innerHTML = newsArr[i].description;
+                        }
+                    } 
+                }
+            })       
+</script>
+</body>
+</html>

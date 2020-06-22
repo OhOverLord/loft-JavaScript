@@ -1,0 +1,61 @@
+/* Здесь пишем свои стили */
+.show_slide_one{
+            transform: translate(0px);
+            transition: 1s;
+        }
+.show_slide_two{
+            transform: translate(-800px);
+            transition: 1s;
+        }
+.show_slide_three{
+            transform: translate(-1600px);
+            transition: 1s;
+        }
+.kit_slides_wrapper {
+    overflow: hidden;
+}
+.slides {
+    width: 2500px;
+    display: flex;
+}
+.container_Scroll_Progress_Indicator {
+    width: 100vw;
+    height: 0.8vh;
+    position: fixed;
+    background-color: white;
+    margin-top: -0.2%;
+}
+.scroll_Progress_Indicator {
+    height: 0.8vh;
+    width: 0px;
+    background-color: #ff3f34;
+}
+.visible {
+    display: none;
+}
+.scrollTop {
+    position: fixed;
+    right: 20px;
+    bottom: 50px;
+    width: 200px;
+    height: 200px;
+        }
+.scrollTopImg {
+    width: 200px;
+    height: 200px;
+    opacity: 0;
+}
+.product-list {
+    width: 300px;
+    background-color: white;
+    position: absolute;
+    right: 0px;
+    border: 1px solid black;
+    padding: 15px;
+}
+.product-in-list {
+    width: 250px;
+	padding: 15px;
+	border: 1px solid black;
+	margin-bottom: 30px;
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/uikit.min.css"/>
+</head>
+<body>
+<!-- Хедер начало -->
+<nav class="uk-navbar-container" uk-navbar>
+    <div class="uk-navbar-left">
+        <a class="uk-navbar-item uk-logo" href="index.html">Article</a>
+    </div>
+    <div id="profileContainer" class="uk-navbar-right">
+        <!-- <div class = "img_avatar uk-margin-medium-right" alt="Avatar"></div>
+        <p class = "uk-text-meta uk-margin-right">Имя</p>
+        <p class = "uk-text-meta uk-margin-medium-right">Фамилия</p> -->
+        <a href="Authorization.html" class="uk-button uk-button-default uk-margin-right">Авторизоваться</a>
+        <a href="checkin.html" class="uk-button uk-button-default uk-margin-right uk-button-danger">Зарегестрироваться</a>
+    </div>
+</nav>
+<!-- Хедер конец -->
+
+    <div class="uk-container uk-container-small uk-flex uk-flex-center uk-flex-middle"
+    uk-height-viewport="offset-top: true">
+        <div class="uk-card uk-card-default uk-card-body uk-width-1-1" id= "authContainer">
+            <h1 class="uk-card-title">Авторизация</h1>
+            <input id="login" type="text" class="uk-input uk-margin-bottom"
+                placeholder="Логин">
+            <input id="pass" type="password" class="uk-input uk-margin-bottom"
+                placeholder="Пароль">
+            <a id="authorization" class="uk-button uk-button-danger">Вход</a>
+            <div id = "errors" class = "uk-text-danger uk-margin-top">
+
+            </div>
+        </div>
+    </div>
+
+<script src="js/uikit.min.js"></script>
+<script src="js/uikit-icons.min.js"></script>
+<script src="js/handlebars-v4.1.2.js"></script>
+<script>
+    'use strict';
+    let xhrUserArr = new XMLHttpRequest();
+    let userArr;
+    let sch = 0;
+    xhrUserArr.open('GET', 'http://api.oneteacher.space/jsonstorage/f80e4d810bc6f0ddb75fec869e86bb38',true);
+    xhrUserArr.send();
+    xhrUserArr.addEventListener('readystatechange', function () {
+            if (xhrUserArr.readyState == 4 && xhrUserArr.status == 200) {
+                userArr = JSON.parse(xhrUserArr.responseText);
+            }
+        })
+        authorization.addEventListener("click", function(){
+                console.log("olo");
+                let authUser = {};
+                for(let user of userArr){
+                    if(login.value == user.name)
+                    {
+                        sch++;
+                        authUser.name = user.name;
+                    }
+                    if(pass.value == user.password)
+                    {
+                        sch++;
+                        authUser.img_url = user.img_url;
+                        authUser.surname = user.surname;
+                    }
+                }
+                console.log(sch);
+                if(sch == 2){
+                    localStorage.setItem("user", JSON.stringify(authUser));
+                    localStorage.setItem('auth', 'true');
+                    window.location.replace("index.html");
+                }
+                else {
+                    authContainer.style.border = "1px solid red";
+                    errors.innerHTML += "Неправильный логин или пароль, попробуйте ещё раз :)";
+                    sch = 0;
+                }         
+            })
+</script>
+</body>
+</html>

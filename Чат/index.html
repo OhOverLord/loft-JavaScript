@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" href="css/uikit.min.css">
+</head>
+
+<body>
+
+	<div class="uk-container uk-container-xsmall uk-margin-top">
+		
+		<!--НАЧАЛО: Элементы для отправки сообщений-->
+		<div>
+		
+			<!--Поле для ввода имени пользователя-->
+			<label>Ваше имя</label>
+			<input id="msgAuthor" type="text" class="uk-input">
+			<!--Поле для ввода текста сообщения-->
+			<label>Текст сообщения</label>
+			<textarea id="msgText" rows="5" class="uk-textarea"></textarea>
+			<!--Кнопка отправки сообщения-->
+			<button id="sendBtn" class="uk-button uk-button-primary uk-margin-small-top uk-width-1-1">Отправить сообщение</button>
+			
+		</div>
+		<!--КОНЕЦ: Элементы для отправки сообщений-->
+		
+		<hr>
+
+		<div id="messages">
+			<!--Здесь будут выводиться сообщения-->
+		</div>
+
+	</div>
+
+	<script src="js/uikit.min.js"></script>
+	<script src="js/uikit-icons.min.js"></script>
+	
+	<script>
+		'use strict';
+		
+		// Пример работы функции вывода сообщений
+		renderMessage('Админ', '14.03.2019', 'Это пример использования функции вывода сообщения. Вам нужно получить от сервера массив сообщений, обойти его при помощи цикла for, for...of или for...in и вывести каждое ссобщение при помощи этой функции');
+		
+		
+		
+		
+		// === Отправка сообщения ===
+		sendBtn.addEventListener('click', function(){
+			// Получаем значение поля ввода имени пользователя
+			let author = encodeURIComponent(msgAuthor.value);
+			// Получаем значение поля ввода текста сообщения
+			let text = encodeURIComponent(msgText.value);
+            msgAuthor.value = '';
+            msgText.value = '';
+                let xhr = new XMLHttpRequest();
+                xhr.open('GET','//api.oneteacher.space/chat/sendmessage.php?author=' + author + '&text=' + text, false);
+				xhr.send();
+		});
+		
+		
+		// === Обновление сообщений ===
+		let msgUpdInterval = setInterval(function(){
+			/*
+				Отправляем асинхронный запрос на адрес http://api.oneteacher.space/chat/getmessages.php
+			*/
+			let xhr = new XMLHttpRequest();
+            xhr.open('GET','http://api.oneteacher.space/chat/getmessages.php', true);
+            xhr.send();
+			// Вешаем обработчик события на xhr, которое сработает
+			// когда изменится состояние запроса
+			xhr.addEventListener('readystatechange', function(){
+				// Проверяем, что запрос завершен
+				if(xhr.readyState == 4 && xhr.status == 200){
+					// проверяем, что статус 200 OK, т.е. запрос прошел нормально 
+						// очищаем список сообщений
+						messages.innerHTML = '';
+				        let massage = JSON.parse(xhr.responseText);
+//                        console.log(massage);
+                        for (var i = 0; i < massage.length; i++) {
+                          renderMessage(massage[i].author, massage[i].datetime, massage[i].text)
+                        }
+
+				}
+			})
+		}, 500);
+		
+		
+		
+		
+		// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==============================================================
+		
+		// Вывести сообщение
+		function renderMessage(author, datetime, text){
+			// Формируем верхнюю часть (автор, дата и время)
+			let header = document.createElement('h3');
+			header.classList.add('uk-card-title');
+			header.innerHTML = author + ' ';
+			
+			let dt = document.createElement('small');
+			dt.innerHTML = '['+datetime+']';
+			
+			header.appendChild(dt);
+			
+			// формируем основную часть сообщения 
+			let txt = document.createElement('p');
+			txt.innerHTML = text;
+			
+			// оборачиваем все в карточку
+			let card = document.createElement('div');
+			card.classList = 'uk-card uk-card-default uk-card-body uk-margin-bottom';
+			card.appendChild(header);
+			card.appendChild(txt);
+			
+			//выводим сообщение
+			messages.appendChild(card);
+		}
+	</script>
+</body></html>

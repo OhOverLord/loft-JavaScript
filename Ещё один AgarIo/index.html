@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Путешественник</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <style>
+    canvas {
+      margin: 20px auto;
+      display: block;
+      width: 800px;
+      box-shadow: 0 0 2px 2px rgba(68, 68, 65, 0.205)
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <canvas id="game" width="800" height="400"></canvas>
+  </div>
+
+  <script>
+    'use strict';
+
+    // Получаем контекст для рисования на Canvas
+    let ctx = game.getContext('2d');
+
+    //Прогружаем изображения
+    let playerImg = new Image();
+    playerImg.src = 'player.png';
+    let foodImg = new Image();
+    foodImg.src = 'food.png';
+    let bombImg = new Image();
+    bombImg.src = 'bomb.png';
+
+    // Объект, в котором мы храним последние координаты мыши
+    let cursor = {
+      x: 0,
+      y: 0
+    }
+    // При движении курсора в области canvas обновляем координаты мыши
+    game.addEventListener('mousemove', function(e) {
+      cursor.x = e.clientX - game.getBoundingClientRect().left;
+      cursor.y = e.clientY - game.getBoundingClientRect().top;
+    });
+
+    // базовый класс
+    let Circle = class {
+      constructor(x, y, r, img) {
+        this.x = x;
+        this.y = y;
+        this.r = r;
+        this.img = img;
+        this.draw();
+      }
+      draw() {
+        ctx.drawImage(this.img, this.x - this.r, this.y - this.r, this.r * 2, this.r * 2);
+      }
+    }
+            let sch = 0;
+    // Динамический круг (умеет двигаться)
+    let DynamicCircle = class extends Circle {
+      move(x, y) {
+
+        this.y += y;
+        this.x += x;
+        // проверка коллизий
+        for (let i in targetsArr) {
+          if (Math.abs(this.x - targetsArr[i].x) < this.r + targetsArr[i].r && Math.abs(this.y - targetsArr[i].y) < this.r + targetsArr[i].r) {
+            targetsArr.splice(i, 1);
+            this.r += 5;
+          }
+        }
+        for (let i in bombArr) {
+          if (Math.abs(this.x - bombArr[i].x) < this.r + bombArr[i].r && Math.abs(this.y - bombArr[i].y) < this.r + bombArr[i].r && this.r > bombArr[i].r) {
+              sch++;
+              if(sch % 2 == 0){
+                 this.r -= 1;
+              }
+          }
+        }
+      }
+      moveToPoint(x, y, v = 2) {
+        let alpha = Math.atan2(y - this.y, x - this.x) / Math.PI * 180;
+        let deltaX = v * Math.cos(alpha * (Math.PI / 180));
+        let deltaY = v * Math.sin(alpha * (Math.PI / 180));
+
+        // меняем коорд
+        this.move(deltaX, deltaY);
+      }
+    }
+    let Player = class extends DynamicCircle {
+      constructor(x, y, r){
+        super(x, y, r, playerImg);
+      }
+      moveToMouse() {
+        this.moveToPoint(cursor.x, cursor.y);
+      }
+    }
+
+    let Enemy = class extends DynamicCircle {
+      constructor(x, y, r) {
+        super();
+        this.x = x;
+        this.y = y;
+        this.r = r;
+        this.color = 'red';
+        this.targetX = player.x;
+        this.targetY = player.y;
+        this.draw();
+      }
+      moveToTarget() {
+        this.moveToPoint(this.targetX, this.targetY, 2);
+
+        let minDistance = 8000;
+        let minIndex = 0;
+
+        if (targetsArr.length > 0) {
+          for (let key in targetsArr) {
+            let d_x = Math.pow(this.x - targetsArr[key].x, 2);
+            let d_y = Math.pow(this.y - targetsArr[key].y, 2);
+
+            let distance = Math.sqrt(d_x + d_y);
+
+            //minDistance = Math.min(minDistance, distance);
+            if (distance < minDistance) {
+              minDistance = distance;
+              minIndex = key;
+            }
+          }
+
+          this.targetX = targetsArr[minIndex].x;
+          this.targetY = targetsArr[minIndex].y;
+        }
+      }
+    }
+    // создание массива, в котором будем хранить собираемые кружки
+    let targetsArr = [];
+    let bombArr = [];
+    // наполняем массив
+    for (let i = 0; i < 50; i++) {
+      let x = getRandomInt(0, 800);
+      let y = getRandomInt(0, 400);
+      targetsArr.push(new Circle(x, y, 10, foodImg));
+    }
+    for (let i = 0; i < 10; i++) {
+      let x = getRandomInt(0, 800);
+      let y = getRandomInt(0, 400);
+      bombArr.push(new Circle(x, y, 10, bombImg));
+    }
+
+    // Создание нашего персонажа. Внутри скобок указать параметры
+    let player = new Player(100, 100, 10);
+//    let enemy = new Enemy(0, 0, 10);
+
+    // Главная функция игры. Крутится циклично бесконечно
+    // С интервалами, невидимыми человеческому глазу пересчитывает 
+    // состояния объектов и постоянно перерисовывает сцену
+    function updState() {
+      // пересчет координат игрока с учетом движения к курсору мыши
+      player.moveToMouse();
+
+      // пересчет координат врага с учетом движения к ближайшей цели
+//      enemy.moveToTarget();
+
+      //очистка и отрисовка всего кадра
+      redraw();
+
+      // заставляем функцию "крутиться" бесконечно
+      requestAnimationFrame(updState);
+    }
+    // хотя бы 1 раз вызываем функцию, чтобы она
+    // закинула сама себя в очередь 
+    // на следующую браузерную отрисовку
+    updState();
+
+    // -- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ -------------------------------
+
+    // генератор случайных чисел
+    // Возвращает случайное число между min (включительно) и max (не включая max)
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min) + min);
+    }
+
+    // Функция перерисовки всех объектов на canvas
+    function redraw() {
+      // Очистить весь канвас
+      ctx.clearRect(0, 0, 800, 400);
+
+      // рисуем игрока
+      player.draw();
+
+      // рисуем врага
+//      enemy.draw();
+
+      //перерисовываем статичные круги
+      for (let index in targetsArr) {
+        targetsArr[index].draw();
+      }
+      for (let index in bombArr) {
+        bombArr[index].draw();
+      }
+    }
+  </script>
+</body>
+
+</html>

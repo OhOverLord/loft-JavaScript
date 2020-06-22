@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Путешественник</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        canvas {
+          background-image: url(https://static8.depositphotos.com/1016824/964/i/950/depositphotos_9641039-stock-photo-perspective-of-grass-on-ground.jpg);
+        }
+  </style>
+</head>
+
+<body>
+    <canvas id="game">
+    <table class="table">
+        <tr>
+            <th scope="row">Очков</th>
+            <td id="score">0</td>
+        </tr>
+    </table>
+    </canvas>
+
+    <script>
+        game.width = screen.width - 20;
+        game.height = screen.height - 100;
+        // Создание класса спрайта - самостоятельно
+        let Circle = class {
+            constructor(x, y, r, img) {
+                this.x = x;
+                this.y = y;
+                this.r = r;
+                this.img=img;
+                this.draw();
+            }
+            draw() {
+                ctx.drawImage(this.img, this.x - this.r, this.y - this.r, this.r*2, this.r*2);
+            }
+        }
+        
+        let dynamicCircle = class extends Circle {
+            move(x, y) {
+                this.y += y;
+                this.x += x;
+            }
+            moveToPoint(x, y, speed) {
+                //alert(Math.sqrt((this.x - cursor.x) * (this.x - cursor.x) + (this.y - cursor.y) * (this.y - cursor.y)))
+                if (Math.sqrt((this.x - cursor.x) * (this.x - cursor.x) + (this.y - cursor.y) * (this.y - cursor.y)) > 30) {
+                    let alpha = Math.atan2(y - this.y, x - this.x) / Math.PI * 180;
+                    let deltaX = speed * Math.cos(alpha * (Math.PI / 180));
+                    let deltaY = speed * Math.sin(alpha * (Math.PI / 180));
+                    this.move(deltaX, deltaY);
+                }
+            }
+            colision() {
+                for (let i = 0; i < targetsArr.length; i++) {
+                    if (Math.sqrt((this.x - targetsArr[i].x) * (this.x - targetsArr[i].x) + (this.y - targetsArr[i].y) * (this.y - targetsArr[i].y)) < this.r + targetsArr[i].r) {
+                        targetsArr.splice(i, 1);
+                        this.r += 2;
+                    }
+                }
+            }
+        }
+        
+        let Player = class extends dynamicCircle {
+            constructor(x, y, r){
+                super(x, y, r, playerImg);
+            }
+            moveToMouse() {
+                this.moveToPoint(cursor.x , cursor.y, 2);
+            }
+           colision() {
+                for (let i = 0; i < targetsArr.length; i++) {
+                    if (Math.sqrt((this.x - targetsArr[i].x) * (this.x - targetsArr[i].x) + (this.y - targetsArr[i].y) * (this.y - targetsArr[i].y)) < this.r + targetsArr[i].r) {
+                    document.querySelector('#score').innerHTML = ++score;
+                    targetsArr.splice(i, 1);
+                    this.r += 2;
+                }
+            }
+                    for (let i = 0; i < bombArr.length; i++) {
+                    if (Math.sqrt((this.x - bombArr[i].x) * (this.x - bombArr[i].x) + (this.y - bombArr[i].y) * (this.y - bombArr[i].y)) < this.r + bombArr[i].r) {
+                        if (this.r > 10)
+                            this.r = this.r - 1;
+                    }
+                }
+            }
+        }
+        
+        // Получаем контекст для рисования на Canvas
+        let ctx = game.getContext('2d');
+
+        let playerImg = new Image();
+        playerImg.src = 'player.png';
+        let enemyImg = new Image();
+        enemyImg.src = 'enemy.png';
+        let targetImg = new Image();
+        targetImg.src = 'target.png';
+        
+
+        let score = 0;
+
+        let cursor = {
+            x: 0,
+            y: 0
+        };
+
+        document.querySelector('canvas').addEventListener('mousemove', function(e) {
+            cursor.x = e.clientX - game.getBoundingClientRect().left;
+            cursor.y = e.clientY - game.getBoundingClientRect().top;
+        });
+
+        // генератор случайных чисел
+        // Возвращает случайное число между min (включительно) и max (не включая max)
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min) + min);
+        }
+
+
+//        let Player = class extends dynamicCircle {
+//            constructor(x, y, r){
+//                super(x, y, r, playerImg);
+//            }
+//            moveToMouse() {
+//                this.moveToPoint(cursor.x, cursor.y, 2);
+//            }
+//            colision() {
+//                for (let i = 0; i < targetsArr.length; i++) {
+//                    if (Math.sqrt((this.x - targetsArr[i].x) * (this.x - targetsArr[i].x) + (this.y - targetsArr[i].y) * (this.y - targetsArr[i].y)) < this.r + targetsArr[i].r) {
+//                        document.querySelector('#score').innerHTML = ++score;
+//                        targetsArr.splice(i, 1);
+//                        this.r += 2;
+//                    }
+//                }
+//            }
+//        }
+
+        let Enemy = class extends dynamicCircle {
+            constructor(x, y, r) {
+            super(x, y, r, enemyImg);
+            this.targetX = player.x;
+            this.targetY = player.Y;
+            }
+            moveToTarget() {
+            if (targetsArr.length !== 0) {
+            let minDist = Infinity;
+            let minTarg = 0;
+            for
+
+            (let i in targetsArr) {
+            let dist = Math.sqrt((this.x - targetsArr[i].x) * (this.x - targetsArr[i].x) + (this.y - targetsArr[i].y) * (this.y - targetsArr[i].y));
+            if (minDist > dist) {
+            minDist = dist;
+            minTarg = i;
+            }
+            }
+            if (minDist > Math.sqrt((this.x - player.x) * (this.x - player.x) + (this.y - player.y) * (this.y - player.y))||this.r<player.r) {
+            this.targetX = targetsArr[minTarg].x;
+            this.targetY = targetsArr[minTarg].y;
+            } else {
+            this.targetX = player.x;
+            this.targetY = player.y;
+            }
+                this.moveToPoint(this.targetX, this.targetY, 1);
+            }
+            }
+        }
+        
+        let move_eat = class extends Enemy {
+            moveToTarget() {
+                if (targetsArr.length !== 0) {
+                    let minDist = Infinity;
+                    let minTarg = 0;
+                    for (let i in targetsArr) {
+                        let dist = Math.sqrt((this.x - targetsArr[i].x) * (this.x - targetsArr[i].x) + (this.y - targetsArr[i].y) * (this.y - targetsArr[i].y));
+                        if (minDist > dist) {
+                            minDist = dist;
+                            minTarg = i;
+                        }
+                    }
+                    this.targetX = targetsArr[minTarg].x;
+                    this.targetY = targetsArr[minTarg].y;
+                    this.moveToPoint(this.targetX, this.targetY, 1);
+                }
+            }
+        }
+        // Создание нашего персонажа. Внутри скобок указать параметры
+        let player = new Player(10, 10, 10);
+
+        // создание массива, в котором будем хранить собираемые кружки
+        let targetsArr = [];
+
+        // наполняем массив
+        for (let i = 0; i < 100; i++) {
+            targetsArr.push(new Circle(getRandomInt(10, screen.width), getRandomInt(10, screen.height), 10, targetImg));
+        }
+
+        let enemy = new Enemy(400, 200, 10);
+
+        function updState() {
+            player.moveToMouse();
+            enemy.moveToTarget();
+            if (Math.abs(cursor.x - player.x) > 0.5 && Math.abs(cursor.y - player.y) > 0.5) redraw();
+            player.colision();
+            enemy.colision();
+            requestAnimationFrame(updState);
+        }
+        requestAnimationFrame(updState);
+        
+            
+        let bombImg = new Image();
+        bombImg.src = "bomb.png";
+        let dineatImg = new Image();
+        dineatImg.src = "fast_eat.png";
+        
+ 
+        let bombArr = [];
+ 
+        for (let i = 0; i < 40; i++) {
+            bombArr.push(new Circle(getRandomInt(10, screen.width - 20), getRandomInt(10,  screen.height - 100), 10, bombImg));
+        }
+        function redraw() {
+            // Очистить весь канвас
+            ctx.clearRect(0, 0, screen.width, screen.height);
+            // рисуем игрока
+            player.draw();
+            enemy.draw();
+
+            for (let i = 0; i < targetsArr.length; i++) {
+                targetsArr[i].draw();
+            }
+            for (let i = 0; i < bombArr.length; i++) {
+                bombArr[i].draw();
+            }
+        }
+        
+        //Вот сам класс
+        
+        let Dineat = class extends dynamicCircle { 
+            constructor(x, y, r, img) { 
+                super(x, y, r, dineatImg); 
+                this.draw(); 
+            } 
+            moveOutPlayer() { 
+                this.moveToPoint(player.x - getRandomInt(0, 100), player.y - getRandomInt(0, 100), getRandomInt(1.3, 1.7)); 
+            } 
+            draw() {
+                ctx.drawImage(this.x - this.r, this.y - this.r, this.r*2, this.r*2, this.img);
+            }
+        }
+
+        
+
+        //Проверка коллизий
+        let dtargetsArr = [];
+
+        for (let i in dtargetsArr) { 
+            if (Math.abs(this.x - dtargetsArr[i].x) < 16 && Math.abs(this.y - dtargetsArr[i].y) < 16) { 
+                dtargetsArr.splice(i, 1); 
+            }
+        }
+
+       // И заполнение массива
+
+        for (let i = 0; i < 10; i++) { 
+            let x = getRandomInt(0, 800); 
+            let y = getRandomInt(0, 400); 
+            dtargetsArr.push(new Dineat(x, y, 8, dineatImg)); 
+        }
+        
+    </script>
+</body>
+
+</html>

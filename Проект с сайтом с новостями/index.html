@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/uikit.min.css"/>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+<nav class="uk-navbar-container" uk-navbar>
+    <div class="uk-navbar-left">
+        <a class="uk-navbar-item uk-logo" href="index.html">Article</a>
+        <ul class="uk-navbar-nav">
+            <li>
+                <a href="#">Публикации</a>
+                <div class="uk-navbar-dropdown">
+                    <ul class="uk-nav uk-navbar-dropdown-nav">
+                        <li class="uk-active"><a href="AddNews.html">Предложить новость</a></li>
+                        <li><a href="myNews.html">Мои новости</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li><a class="feedback" href="#modal" uk-toggle>Обратная связь</a></li>
+        </ul>
+    </div>
+    <div id="profileContainer" class="uk-navbar-right">
+        <!-- <div class = "img_avatar uk-margin-medium-right" alt="Avatar"></div>
+        <p class = "uk-text-meta uk-margin-right">Имя</p>
+        <p class = "uk-text-meta uk-margin-medium-right">Фамилия</p> -->
+        <a href="Authorization.html" class="uk-button uk-button-default uk-margin-right">Авторизоваться</a>
+        <a href="checkin.html" class="uk-button uk-button-default uk-margin-right uk-button-danger">Зарегестрироваться</a>
+    </div>
+</nav>
+
+
+    <div class="uk-container uk-container-large">
+            <div uk-grid class="uk-padding-large uk-padding-remove-horizontal uk-grid-divider">
+                <div class="uk-width-3-4">
+                    <main>
+                        <h2 class="uk-margin-bottom">Лента новостей</h2>
+                        <hr class="uk-margin-medium-bottom">
+                        <div id="newsContainer" uk-grid="masonry: true" class="uk-child-width-1-2">
+                            <div>
+                                <div class="uk-card uk-card-default uk-card-body">
+                                    <h3 class="uk-card-title">
+                                        В Госдуме ответили на призыв США заблокировать самолетам путь в Венесуэлу - РИА
+                                        Новости
+                                    </h3>
+                                    <img
+                                        src="https://cdn25.img.ria.ru/images/155191/92/1551919255_0:145:3072:1873_1036x0_80_0_0_926014ce2d953df0dc964b92357ff1f5.jpg">
+                                    <p>
+                                        Депутат Госдумы Антон Морозов прокомментировал призыв официального представителя
+                                        Госдепартамента США Морган Ортагус ко всем странам не пускать российские... РИА
+                                        Новости, 19.04.2019
+                                    </p>
+                                    <a href="https://ria.ru/20190419/1552870848.html" class="uk-button uk-button-danger uk-width-1-1"
+                                        target="_blank">Читать полностью</a>
+                                </div>
+                                <div>
+                                        <div class="uk-button-group">
+                                            <button class="uk-button uk-button-danger"><img data-src="img/like.png" width="20px" height="20px"uk-img></button>
+                                            <button class="uk-button uk-button-danger"><img data-src="img/dislike.png" width="20px" height="20px"uk-img></button>
+                                        </div>
+                                    </div>
+                            </div>
+    
+                        </div>
+                    </main>
+                </div>
+    
+    
+    
+    
+                
+                <div class="uk-width-1-4"  uk-scrollspy="cls: uk-animation-slide-bottom; target: .uk-card; delay: 300; repeat: true">
+                    <h2 class="uk-margin-bottom">Новости с других источников:</h2>
+                    <div class="uk-grid-small uk-grid-match" id = "otherSources" uk-grid uk-scrollspy="cls: uk-animation-slide-bottom; target: .uk-card; delay: 300; repeat: true">
+                        
+                    </div>
+            </div>
+        </div>
+       
+        <div id="modal" uk-modal>
+            <div class="uk-modal-dialog uk-modal-body">
+                <button class="uk-modal-close-default" type="button" uk-close></button>
+                <h2 class="uk-modal-title">Обратная связь</h2>
+                <p>Заголовок</p>
+                <input class = "feedbackTitle uk-input" type="text">
+                <p>Описание</p>
+                <textarea class = "feedbackDescription uk-flex uk-textarea" cols="30" rows="10"></textarea>
+                <p class="uk-text-right гл-">
+                    <button class="uk-button uk-button-default uk-modal-close" type="button">Закрыть</button>
+                    <button class="uk-button uk-button-danger sendFeedback" type="button">Отправить</button>
+                </p>
+                <a href="feedback.html">Посмотреть все мои жалобы</a>
+            </div>
+        </div>
+
+<script src="js/uikit.min.js"></script>
+<script src="js/uikit-icons.min.js"></script>
+<script src="js/handlebars-v4.1.2.js"></script>
+<script>
+    'use strict';
+    let user = JSON.parse(localStorage.getItem('user'))
+    let auth = JSON.parse(localStorage.getItem('auth'))
+    console.log(auth)
+    let authCode= `
+        <div class = "img_avatar uk-margin-medium-right" style="background-image: url({{img_url}});" alt="Avatar"></div>
+        <p class = "uk-text-meta uk-margin-right">{{name}}</p>
+        <p class = "uk-text-meta uk-margin-medium-right">{{surname}}</p>
+        <button id = "goOut" class="uk-button uk-button-danger uk-margin-right">Выйти</button>
+    `;
+    let notAuthCode = `
+        <a href="Authorization.html" class="uk-button uk-button-default uk-margin-right">Авторизоваться</a>
+        <a href="checkin.html" class="uk-button uk-button-default uk-margin-right uk-button-danger">Зарегестрироваться</a>
+    `;
+
+    let xhrLoadNews = new XMLHttpRequest();
+    let newsArr;
+            xhrLoadNews.open('GET', 'http://api.oneteacher.space/jsonstorage/78522b4fb159f60d22a83ffdade964f9',true);
+            xhrLoadNews.send();
+            xhrLoadNews.addEventListener('readystatechange', function () {
+                if(xhrLoadNews.readyState == 4 && xhrLoadNews.status == 200){
+                    let user = JSON.parse(localStorage.getItem('user'))
+                    newsArr = JSON.parse(xhrLoadNews.responseText);
+                    let templateNewsCode= `
+                        <div>
+                            <div class="uk-card uk-card-default uk-card-body">
+                                <h3 class="uk-card-title">{{title}}</h3>
+                                <img src="{{preview}}" alt="" class = "img_news" width="400" height="400">
+                                <p>{{descriptionPreview}}</p>
+                                <a href = "thisNews.html" class="uk-button uk-button-danger uk-width-1-1 bth_news">Читать полностью</a>
+                            </div>
+                                <input type="hidden" value="{{id}}" class = "news_id">
+                        </div>
+                    `;
+                    let templateNews = Handlebars.compile(templateNewsCode);
+                    let newsContainer = document.querySelector('#newsContainer');
+                    newsContainer.innerHTML = '';
+                    for (let news of newsArr) {
+                        newsContainer.innerHTML += templateNews(news);
+                    }
+                    let newsbthArr = document.querySelectorAll('.bth_news');
+                    let newsIdArr = document.querySelectorAll('.news_id');
+                    for(let i = 0; i < newsbthArr.length; i++){
+                        newsbthArr[i].addEventListener('click', function () {
+                            localStorage.setItem('id_news', JSON.stringify(newsIdArr[i].value));
+                            console.log(newsIdArr[i].value, "- id");
+                        })
+                    } 
+                }
+            })
+            let xhrOtherSourcesNews = new XMLHttpRequest();
+            xhrOtherSourcesNews.open('GET', 'http://newsapi.org/v2/top-headlines?country=ru&apiKey=d7f41a32c26b4bbfb596d58b1a54c766',true);
+            xhrOtherSourcesNews.send();
+            xhrOtherSourcesNews.addEventListener('readystatechange', function () {
+                if(xhrOtherSourcesNews.readyState == 4 && xhrOtherSourcesNews.status == 200){
+                    let newsOdj = JSON.parse(xhrOtherSourcesNews.responseText);
+                    let newsArr = newsOdj.articles;
+                    console.log(newsOdj)
+                    let templateNewsCode= `
+                        <div>
+                            <div class="uk-card uk-card-default uk-card-body">
+                                <a href="{{url}}" class = "uk-text-muted">{{title}}</a>
+                            </div>
+                        </div>
+                    `;
+                    let templateNews = Handlebars.compile(templateNewsCode);
+                    let newsContainer = document.querySelector('#otherSources');
+                    newsContainer.innerHTML = '';
+                    for (let news of newsArr) {
+                        newsContainer.innerHTML += templateNews(news);
+                    } 
+                }
+            })
+
+    let templateAuth = Handlebars.compile(authCode);
+    let templateNotAuth = Handlebars.compile(notAuthCode);
+    let context = {img_url: user.img_url, name: user.name, surname: user.surname};
+    if(auth)
+    {
+        console.log(templateAuth(context));
+        profileContainer.innerHTML = templateAuth(context);
+        goOut.addEventListener("click", function(){
+            localStorage.setItem('auth', 'false');
+            location.reload(true)
+        })
+
+
+        let sendFeedback = document.querySelector('.sendFeedback');
+        sendFeedback.addEventListener("click", function(){
+            let xhrFeedback = new XMLHttpRequest();
+            xhrFeedback.open('GET', 'http://api.oneteacher.space/jsonstorage/6ee05c0350262da59d97f424dd7d476c',true);
+            xhrFeedback.send();
+            xhrFeedback.addEventListener('readystatechange', function () {
+                if(xhrFeedback.readyState == 4 && xhrFeedback.status == 200){
+                    let user = JSON.parse(localStorage.getItem('user'))
+                    let feedbackArr = JSON.parse(xhrFeedback.responseText);
+                    let feedbacTtite = document.querySelector('.feedbackTitle');
+                    let feedbackDescription = document.querySelector('.feedbackDescription');
+                    let newFeedback = {
+                        author: user.name,
+                        title: feedbacTtite.value,
+                        description: feedbackDescription.value
+                    }
+                    feedbackArr.push(newFeedback);
+                    console.log(feedbackArr);
+                    let xhrFeedbackSend = new XMLHttpRequest();
+                    xhrFeedbackSend.open('PUT', 'http://api.oneteacher.space/jsonstorage/6ee05c0350262da59d97f424dd7d476c', true);
+                    xhrFeedbackSend.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                    xhrFeedbackSend.send(JSON.stringify(feedbackArr));
+                    xhrFeedbackSend.addEventListener('readystatechange', function () {
+                        if (xhrFeedbackSend.readyState == 4 && xhrFeedbackSend.status == 200) {
+                                location.reload(true)
+                            }
+                    })
+                }
+            })
+        })
+
+
+    }else{
+        profileContainer.innerHTML = templateNotAuth();
+    }
+</script>    
+</body>
+</html>

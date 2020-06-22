@@ -1,0 +1,16 @@
+.img_avatar 
+{
+        border-radius:50%;
+        background-size: cover;
+        background-position: 50% 0%;
+        height:50px;
+        width:50px;
+}
+.img_news
+{
+        margin: auto;
+}
+
+.commentContainer {
+        background-color: #f0506e;
+}

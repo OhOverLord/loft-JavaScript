@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+ 
+ <p id = "terminal"></p>
+<style>
+    body {
+        background-color: #222;
+    }
+    p {
+        color:#0f0;
+        font-family: monospace;
+    }
+</style>
+  <script>
+    'use strict';
+document.addEventListener('keydown', function(e){
+    //if(e.key.length <= 1) {
+    //         terminal.innerHTML += e.key;
+    //}
+    terminal.innerHTML += e.key;
+     if(e.key = "Backspace") {
+             terminal.length -= 1;
+    }
+
+ });
+    </script> 
+</body>
+</html>

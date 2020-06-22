@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/uikit.min.css"/>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+<!-- Хедер начало -->
+<nav class="uk-navbar-container" uk-navbar>
+    <div class="uk-navbar-left">
+        <a class="uk-navbar-item uk-logo" href="index.html">Article</a>
+        <ul class="uk-navbar-nav">
+            <li>
+                <a href="#">Публикации</a>
+                <div class="uk-navbar-dropdown">
+                    <ul class="uk-nav uk-navbar-dropdown-nav">
+                        <li class="uk-active"><a href="AddNews.html">Предложить новость</a></li>
+                        <li><a href="myNews.html">Мои новости</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li><a class="feedback" href="#modal" uk-toggle>Обратная связь</a></li>
+        </ul>
+    </div>
+    <div id="profileContainer" class="uk-navbar-right">
+        <!-- <div class = "img_avatar uk-margin-medium-right" alt="Avatar"></div>
+        <p class = "uk-text-meta uk-margin-right">Имя</p>
+        <p class = "uk-text-meta uk-margin-medium-right">Фамилия</p> -->
+        <a href="Authorization.html" class="uk-button uk-button-default uk-margin-right">Авторизоваться</a>
+        <a href="checkin.html" class="uk-button uk-button-default uk-margin-right uk-button-danger">Зарегестрироваться</a>
+    </div>
+</nav>
+<!-- Хедер конец -->
+
+<div class="uk-container uk-margin-top">
+    <table class="uk-table uk-table-middle uk-table-divider">
+        <thead>
+            <tr>
+                <th class="uk-width-small">Название</th>
+                <th>Описание</th>
+            </tr>
+        </thead>
+        <tbody class = "myNewsTableContainer">
+        </tbody>
+    </table>
+</div>
+
+<div id="modal" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h2 class="uk-modal-title">Обратная связь</h2>
+        <p>Заголовок</p>
+        <input class = "feedbackTitle uk-input" type="text">
+        <p>Описание</p>
+        <textarea class = "feedbackDescription uk-flex uk-textarea" cols="30" rows="10"></textarea>
+        <p class="uk-text-right">
+            <button class="uk-button uk-button-default uk-modal-close" type="button">Закрыть</button>
+            <button class="uk-button uk-button-danger sendFeedback" type="button">Отправить</button>
+        </p>
+        <a href="feedback.html">Посмотреть все мои жалобы</a>
+    </div>
+</div>
+
+<script src="js/uikit.min.js"></script>
+<script src="js/uikit-icons.min.js"></script>
+<script src="js/handlebars-v4.1.2.js"></script>
+<script>
+'use strict';
+    let user = JSON.parse(localStorage.getItem('user'))
+    let auth = JSON.parse(localStorage.getItem('auth'))
+    let authCode= `
+        <div class = "img_avatar uk-margin-medium-right" style="background-image: url({{img_url}});" alt="Avatar"></div>
+        <p class = "uk-text-meta uk-margin-right">{{name}}</p>
+        <p class = "uk-text-meta uk-margin-medium-right">{{surname}}</p>
+        <button id = "goOut" class="uk-button uk-button-danger uk-margin-right">Выйти</button>
+    `;
+    let notAuthCode = `
+        <button class="uk-button uk-button-default uk-margin-right">Авторизоваться</button>
+        <button class="uk-button uk-button-danger uk-margin-right">Зарегестрироваться</button>
+    `;
+
+    let templateAuth = Handlebars.compile(authCode);
+    let templateNotAuth = Handlebars.compile(notAuthCode);
+    let context = {img_url: user.img_url, name: user.name, surname: user.surname};
+    console.log(auth);
+    if(auth)
+    {
+        console.log(templateAuth(context));
+        profileContainer.innerHTML = templateAuth(context);
+
+        goOut.addEventListener("click", function(){
+            localStorage.setItem('auth', 'false');
+            location.reload(true)
+        })
+        let xhrLoad = new XMLHttpRequest();
+        let newsArr;
+        xhrLoad.open('GET', 'http://api.oneteacher.space/jsonstorage/6ee05c0350262da59d97f424dd7d476c',true);
+        xhrLoad.send();
+        xhrLoad.addEventListener('readystatechange', function () {
+                if(xhrLoad.readyState == 4 && xhrLoad.status == 200){
+                    let user = JSON.parse(localStorage.getItem('user'))
+                    newsArr = JSON.parse(xhrLoad.responseText);
+                    for(let i = 0; i < newsArr.length; i++){
+                        if(newsArr[i].author == user.name){
+                            let templateCode= `
+                            <tr>
+                                <td>{{title}}</td>
+                                <td>{{description}}</td>
+                            </tr>
+                            `;
+                            let template = Handlebars.compile(templateCode);
+                            let myNewsTableContainer = document.querySelector('.myNewsTableContainer');
+                            myNewsTableContainer.innerHTML += template(newsArr[i]); 
+                        }
+                    } 
+                }
+            })
+
+            let sendFeedback = document.querySelector('.sendFeedback');
+            sendFeedback.addEventListener("click", function(){
+            let xhrFeedback = new XMLHttpRequest();
+            xhrFeedback.open('GET', 'http://api.oneteacher.space/jsonstorage/6ee05c0350262da59d97f424dd7d476c',true);
+            xhrFeedback.send();
+            xhrFeedback.addEventListener('readystatechange', function () {
+                if(xhrFeedback.readyState == 4 && xhrFeedback.status == 200){
+                    let user = JSON.parse(localStorage.getItem('user'))
+                    let feedbackArr = JSON.parse(xhrFeedback.responseText);
+                    let feedbacTtite = document.querySelector('.feedbackTitle');
+                    let feedbackDescription = document.querySelector('.feedbackDescription');
+                    let newFeedback = {
+                        author: user.name,
+                        title: feedbacTtite.value,
+                        description: feedbackDescription.value
+                    }
+                    feedbackArr.push(newFeedback);
+                    console.log(feedbackArr);
+                    let xhrFeedbackSend = new XMLHttpRequest();
+                    xhrFeedbackSend.open('PUT', 'http://api.oneteacher.space/jsonstorage/6ee05c0350262da59d97f424dd7d476c', true);
+                    xhrFeedbackSend.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                    xhrFeedbackSend.send(JSON.stringify(feedbackArr));
+                    xhrFeedbackSend.addEventListener('readystatechange', function () {
+                        if (xhrFeedbackSend.readyState == 4 && xhrFeedbackSend.status == 200) {
+                                location.reload(true)
+                            }
+                    })
+                }
+            })
+        }) 
+    }
+    else
+    {
+        window.location.replace("Authorization.html");
+    }
+    
+</script>
+</body>
+</html>
